@@ -187,6 +187,7 @@ def job_new(request):
             request.params['title'],
             request.params['geometry'],
             request.params['zoom'],
+            request.params['geojson_url'],
             authenticated_userid(request)
         )
 

@@ -8,6 +8,7 @@
             % if tile.username:
             <form action="${request.route_url('task_done', job=tile.job_id, x=tile.x, y=tile.y, zoom=tile.zoom)}" class="form-horizontal">
                 <div class="well">
+                    % if tile.import_file is None:
                     <p>1. Open the area in your favorite editing tool.</p>
                     <div class="row">
                         <div class="span1">&nbsp;</div>
@@ -22,18 +23,44 @@
                     </div>
                     <div class="row">
                         <div class="span5">
-                            <p>Link to <a href="${request.route_url('task_export', job=tile.job_id, x=tile.x, y=tile.y, zoom=tile.zoom)}" target="_blank" rel="tooltip" data-original-title="Right-click on the link to save the file (JOSM) or copy its location (Potlatch)."> .osm</a> file.
+                            <p>Link to <a href="${request.route_url('task_export', job=tile.job_id, x=tile.x, y=tile.y, zoom=tile.zoom)}" target="_blank" rel="tooltip" data-original-title="Right-click on the link to save the file (JOSM) or copy its location (Potlatch)."> .osm</a> file.</p>
                         </div>
                     </div>
+                    % else:
+                    <p>1. Open the area in JOSM.</p>
+                    <div class="row">
+                        <div class="span1">&nbsp;</div>
+                        <div class="span4">
+                            <div id="export">
+                                <a class="btn btn-small btn-info" id="josm" rel="tooltip" data-original-title="If you have JOSM already running, clicking this button should load data for the area of the current task.">JOSM</a>
+                            </div>
+                        </div>
+                    </div>
+                    <p>&nbsp;&nbsp;&nbsp;Import the data into JOSM.</p>
+                    <div class="row">
+                        <div class="span1">&nbsp;</div>
+                        <div class="span4">
+                            <div>
+                                <a class="btn btn-small btn-info" href="http://127.0.0.1:8111/import?url=${tile.import_file}" target="_blank">.osm</a>
+                            </div>
+                        </div>
+                    </div>
+                    % endif
                 </div>
             % if job.task_extra is not None:
             <%include file="job.task_extra.mako" />
             % endif
             % if tile.checkin == 0:
                 <div class="well">
+                    % if tile.import_file is None:
                     <p>2. Trace the elements.</p>
                     <%include file="imagery.mako" />
                     <%include file="task.comments.mako" />
+                    % else:
+                    <p>2. Conflate the data.</p>
+                    <%include file="imagery.mako" />
+                    <%include file="task.comments.mako" />
+                    % endif
                 </div>
                 <div class="well">
                     <p>3. Add a comment and mark the task as done.</p>
@@ -79,9 +106,11 @@
                 Can't work on this task right now? No problem.
                 <a href="${request.route_url('task_unlock', job=tile.job_id, x=tile.x, y=tile.y, zoom=tile.zoom)}" id="unlock">Unlock it!</a>. Otherwise, it will be automatically unlocked in <span id="countdown"></span> minutes.
             </p>
+            % if tile.geometry is None:
             <p>
             You can also <a href="${request.route_url('task_split', job=tile.job_id, x=tile.x, y=tile.y, zoom=tile.zoom)}" id="split" class="btn btn-small"><i class="icon-split"></i>Split it!</a> into smaller pieces.
             </p>
+            % endif
             </form>
             % endif
         </div>

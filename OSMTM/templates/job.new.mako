@@ -65,6 +65,18 @@
                             </p>
                         </div> 
                     </div>
+                    <div class="control-group">
+                        <label class="control-label" for="id_geojson_url">GeoJSON URL</label> 
+                        <div class="controls"> 
+                            <input type="text" class="text input-large" id="id_geojson_url" name="geojson_url" value="" />
+                            <span class="help-block">
+                                ex: http://domain.com/my-geography.geojson
+                            </span>
+                            <p class="help-block">
+                                <strong>Note:</strong> Optional. Divide tasks by geometry from a geojson file instead of the default grid.
+                            </p> 
+                        </div>
+                    </div>
                 </div>
                 <div class="span6">
                     <div id="map">

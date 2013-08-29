@@ -1,4 +1,6 @@
 import transaction
+import json
+import urllib
 
 from sqlalchemy import Column
 from sqlalchemy import Integer
@@ -57,14 +59,20 @@ class Tile(Base):
     checkin = Column(Integer)
     change = Column(Boolean, default=False)
     comment = Column(Unicode)
+    geometry = Column(Unicode)
+    import_file = Column(Unicode)
 
-    def __init__(self, x, y, zoom):
+    def __init__(self, x, y, zoom, geometry=None, import_file=None):
         self.x = x
         self.y = y
         self.zoom = zoom
+        self.geometry = geometry
+        self.import_file = import_file
         self.checkin = 0
 
     def to_polygon(self, srs=900913):
+        if self.geometry:
+            return loads(self.geometry)
         # tile size (in meters) at the required zoom level
         step = max/(2**(self.zoom - 1))
         tb = TileBuilder(step)
@@ -159,7 +167,7 @@ class Job(Base):
     license_id = Column(Integer, ForeignKey('licenses.id'))
 
     def __init__(self, title=None,
-                 geometry=None, zoom=None, author=None):
+                 geometry=None, zoom=None, geojson_url=None, author=None):
         self.title = title
         self.status = 1
         self.geometry = geometry
@@ -167,11 +175,41 @@ class Job(Base):
         self.description = u''
         self.workflow = u''
         self.zoom = zoom
+        self.geojson_url = geojson_url
         self.author = author
 
         tiles = []
-        for i in get_tiles_in_geom(loads(geometry), int(zoom)):
-            tiles.append(Tile(i[0], i[1], int(zoom)))
+        
+        if geojson_url:
+            jsonurl = urllib.urlopen(geojson_url)
+            data = json.loads(jsonurl.read())
+            
+            x = 0
+            for f in data['features']:
+                poly_type = f['geometry']['type']
+                try:
+                    import_url = f['properties']['import_url']
+                except KeyError:
+                    import_url = None
+                for p in f['geometry']['coordinates']:
+                    wkt = ''
+                    if poly_type == "Polygon":
+                        poly_coords = p
+                    else:
+                        poly_coords = p[0]
+                    for c in poly_coords:
+                        if wkt != '':
+                            wkt = wkt + ','
+                        wkt = wkt + str(c[0]) + " " + str(c[1])
+                
+                    t = Tile(x,0,0,'POLYGON((' + wkt + '))',import_url)
+                    x = x + 1
+                    
+                    tiles.append(t)
+        else:
+            for i in get_tiles_in_geom(loads(geometry), int(zoom)):
+                tiles.append(Tile(i[0], i[1], int(zoom)))
+          
         self.tiles = tiles
 
     def get_last_update(self):
