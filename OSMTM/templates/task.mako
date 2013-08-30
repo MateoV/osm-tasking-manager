@@ -54,13 +54,11 @@
                 <div class="well">
                     % if tile.import_file is None:
                     <p>2. Trace the elements.</p>
-                    <%include file="imagery.mako" />
-                    <%include file="task.comments.mako" />
                     % else:
                     <p>2. Conflate the data.</p>
+                    % endif
                     <%include file="imagery.mako" />
                     <%include file="task.comments.mako" />
-                    % endif
                 </div>
                 <div class="well">
                     <p>3. Add a comment and mark the task as done.</p>

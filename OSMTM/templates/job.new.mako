@@ -73,7 +73,7 @@
                                 ex: http://domain.com/my-geography.geojson
                             </span>
                             <p class="help-block">
-                                <strong>Note:</strong> Optional. Divide tasks by geometry from a geojson file instead of the default grid.
+                                <strong>Note:</strong> Optional. Divide tasks by geometry from a geojson file instead of the default grid (requires EPSG:900913).
                             </p> 
                         </div>
                     </div>
