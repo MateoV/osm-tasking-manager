@@ -181,30 +181,37 @@ class Job(Base):
         tiles = []
         
         if geojson_url:
+            def build_wkt(polygon):
+                wkt = ''
+                for c in polygon:
+                    if wkt != '':
+                        wkt = wkt + ','
+                    wkt = wkt + str(c[0]) + " " + str(c[1])
+                return '(' + wkt + ')'
+                
             jsonurl = urllib.urlopen(geojson_url)
             data = json.loads(jsonurl.read())
             
             x = 0
             for f in data['features']:
-                poly_type = f['geometry']['type']
+                wkt_string = []
                 try:
                     import_url = f['properties']['import_url']
                 except KeyError:
                     import_url = None
                 for p in f['geometry']['coordinates']:
-                    wkt = ''
-                    if poly_type == "Polygon":
-                        poly_coords = p
+                    if f['geometry']['type'] == "MultiPolygon":
+                        wkt_string = []
+                        for subp in p:
+                            wkt_string.append(build_wkt(subp))
+                        t = Tile(x,0,0,'POLYGON(' + ','.join(wkt_string) + ')',import_url)
+                        x = x + 1
+                        tiles.append(t)
                     else:
-                        poly_coords = p[0]
-                    for c in poly_coords:
-                        if wkt != '':
-                            wkt = wkt + ','
-                        wkt = wkt + str(c[0]) + " " + str(c[1])
-                
-                    t = Tile(x,0,0,'POLYGON((' + wkt + '))',import_url)
+                        wkt_string.append(build_wkt(p))
+                if f['geometry']['type'] != "MultiPolygon":
+                    t = Tile(x,0,0,'POLYGON(' + ','.join(wkt_string) + ')',import_url)
                     x = x + 1
-                    
                     tiles.append(t)
         else:
             for i in get_tiles_in_geom(loads(geometry), int(zoom)):
